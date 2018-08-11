@@ -40,4 +40,10 @@ if __name__ == "__main__":
     # vol = kodi.setData("Application.GetProperties",{"properties":["volume"]})
     # print(kodi.getResult(vol)['volume'])
 
+    # if (kodi.checkConnection()):
+    #     print("connected")
+    # else :
+    #     print("not connected")
+
+
     Player()

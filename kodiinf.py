@@ -16,7 +16,7 @@ class Inf(dict):
         return self.NA
 
 class Kodi (object):
-    def __init__(self,url,username="Kodi",password="xbmc"):
+    def __init__(self,url,username="Kodi",password="xbmc",debug=False):
         self.host = "http://"+url+"/jsonrpc"
         self.username = username
         self.password = password
@@ -34,26 +34,18 @@ class Kodi (object):
         }
         try :
             testconnection = Inf(requests.post(self.host, headers=self.header, json=ping, auth=(self.username,self.password)).json())['result']
-            if (testconnection=='pong'):
-                print("connection OK")
+            if debug :
+                if (testconnection=='pong'):
+                    print("connection OK")
+                    # self.isConnected == True
         except:
             print("Please check your connection")
             sys.exit(1)
 
-    # deprecated  
-    # def getVolume(self):
-    #     data = {
-    #         "jsonrpc" : "2.0",
-    #         "method" : "Application.GetProperties",
-    #         "params" :{
-    #             "properties" : ["volume"]
-    #         },
-    #         "id" : "getVolume"
-    #     }
-    #     response = requests.post(self.host,headers=self.header,json=data).json()
-    #     self.volume = Inf(response)['result']['volume']
-    #     print("volume :",self.volume)
-
+    # def checkConnection(self):
+    #     if(self.isConnected):
+    #         return True
+    
     def setData (self,method,params=None):
         data = {
             "jsonrpc":"2.0"
