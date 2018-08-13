@@ -90,9 +90,10 @@ def consumer(cond):
 def connection(cond):
     """set up the resource to be used by the consumer"""
     # logging.debug('Starting producer thread')
+    successfull_tries = 0
     with cond:
         logging.debug('Making resource available')
-
+        cond.notify()
         # cond.notifyAll()
 
 
