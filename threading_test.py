@@ -6,9 +6,16 @@ import time
 import sys
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s', )
-class Inf(dict):
+
+condition = threading.Condition()
+header = {
+            'Content-Type': 'application/json',
+            'User-Agent': 'python-kodi'
+        }        
+
+class Extract(dict):
     # usage
-    # d=Inf(dict)
+    # d=Extract(dict)
     # d['arg']['kwarg']
     class NADict(object):
         def __getitem__(self, k):
@@ -17,54 +24,124 @@ class Inf(dict):
     def __missing__(self, k):
         return self.NA
 
-condition = threading.Condition()
+
 
 def producer(host,username,password):
-    with condition:
-        # logging.debug("host %s, username %s, password %s",host,username,password)
-        ping = {
-            "jsonrpc":"2.0",
-            "method":"JSONRPC.Ping",
-            "id":"ping"
-        }
-        try:
-            known_host = Inf(requests.post(host, json=ping, auth=(username,password)).json())['result']
-            if known_host=='pong':
-                logging.debug("connected to %s",host)
-                condition.notifyAll()
-        except:
-            logging.debug("error connection to %s",host)
-            sys.exit(1)
+    trial_success = 0
+    trial_error = 0
+    while True:
+        with condition:
+            # logging.debug("host %s, username %s, password %s",host,username,password)
+            ping = {
+                "jsonrpc":"2.0",
+                "method":"JSONRPC.Ping",
+                "id":"ping"
+            }
+            try:
+                known_host = Extract(requests.post(host, json=ping, auth=(username,password)).json())['result']
+                if known_host=='pong':
+                    trial_success += 1
+                    # logging.debug("connected to %s",host)
+                    if trial_success >= 5:
+                        time.sleep(5)
+                        trial_success = 0
+                        break
+                    condition.notifyAll()
+            except:
+                trial_error += 1
+                if trial_error >= 5 :
+                    sys.exit(1)
+                logging.debug("error connection to %s, triying (%s)",host,trial_error)
+        time.sleep(1)
 
 
-def consumer(args,kwarg):
+def consumer(id, args, kwarg, filterResult):
     with condition :
         logging.debug("waiting host")
+        # logging.debug("args %s, kwargs %s",args,kwarg)
         condition.wait()
-        logging.debug("args %s, kwargs %s",args,kwarg)
+        params = {}
+        params["jsonrpc"]="2.0"
+        params["id"]=id
+        params["method"]=args
+        if kwarg :
+            params["params"]=kwarg
+        logging.debug("sending : %s to %s", params, host)
+        # try :
+        result = Extract(requests.post(host, headers=header, json=params).json())['result']
+        if filterResult:
+            result = Extract(result)[filterResult]
+        logging.debug('result : %s',result)
+        return result
+        # except :
+        #     logging.debug("error params %s", params)
+
+def getPlayerExtractormation ():
+    trial_error = 0
+    trial_success = 0
+    while True :
+        with condition :
+            condition.wait()
+            params = {}
+            params["jsonrpc"]="2.0"
+            params["id"] = "playerExtract"
+            params["method"] = "Player.GetActivePlayers"
+            logging.debug("sending : %s to %s", params, host)
+            try :
+                player_type = Extract(requests.post(host, headers=header, json=params).json())['result'][0]['type']
+                player_id = Extract(requests.post(host, headers=header, json=params).json())['result'][0]['playerid']
+                trial_success += 1
+                if trial_success >= 5 :
+                    break
+                logging.debug("id :%s, player : %s",player_id,player_type)
+                if player_type == 'audio' :
+                    params["method"]="Player.GetItem"
+                    params["params"]={"playerid":player_id}
+                    logging.debug("audio_Extract : %s",params)
+                    audio_Extract = Extract(requests.post(host, headers=header, json=params).json())['result']['item']
+                    logging.debug("audio_Extract : %s",audio_Extract)
+            except :
+                trial_error += 1
+                if trial_error >= 5 :
+                    break
+                logging.debug("no active player")
+
+
+
+
 
 class Host(threading.Thread):
-    def __init__(self, url, username="kodi", password="kodi"):
-        threading.Thread.__init__(self)
-        self.host = "http://"+url+"/jsonrpc"
-        self.username = username
-        self.password = password
+    def __init__(self, url="localhost:8080", name="Server",  user="kodi", passwd="kodi"):
+        threading.Thread.__init__(self, name="Server")
+        global host, username, password
+        host = "http://"+url+"/jsonrpc"
+        username = user
+        password = passwd
 
     def run (self):
         logging.debug("running host")
-        producer(self.host,self.username,self.password)
+        producer(host,username,password)
 
 class Kodi(threading.Thread):
-    def __init__(self, args=(), kwargs=None, target=None, name=None):
-        threading.Thread.__init__(self, args=(), kwargs=None, target=None, name=None)
+    def __init__(self, name=None, args=(), kwargs=None, id=None, getresult=None):
+        threading.Thread.__init__(self, name=None, args=(), kwargs=None)
         self._args = args
         self._kwargs = kwargs
+        self._getresult = getresult
+        if isinstance(id,int):
+            self._id += 1
+        else :
+            self._id = id
     def run(self):
         logging.debug("running Kodi")
-        consumer(self._args,self._kwargs)
+        consumer(self._id, self._args, self._kwargs, self._getresult)
 
 
-
+class Player (threading.Thread):
+    def __init__(self, name=None) :
+        threading.Thread.__init__(self, name=name)
+    def run(self) :
+        getPlayerExtractormation()
 
 
 # def producer (cond,host):
@@ -93,7 +170,7 @@ class Kodi(threading.Thread):
     #         "id":"ping"
     #     }
     #     try:
-    #         res = Inf(requests.post(self.host, json=ping, auth=(self.username,self.password)).json())['result']
+    #         res = Extract(requests.post(self.host, json=ping, auth=(self.username,self.password)).json())['result']
     #         if res == "pong":
     #             with condition :
     #                 condition.notify_all()
@@ -120,7 +197,7 @@ class Kodi(threading.Thread):
         # with condition:
         #     logging.debug("waiting....")
         #     condition.wait()
-        #     res = Inf(requests.post(self.host, headers=header, json=params, auth=(self.username,self.password)).json())['result']
+        #     res = Extract(requests.post(self.host, headers=header, json=params, auth=(self.username,self.password)).json())['result']
         #     logging.debug('result : %s',res)
 
         # logging.debug('run args : %s, kwargs : %s',self.args,self.kwargs)
@@ -142,7 +219,7 @@ class Kodi(threading.Thread):
 #         "id":"con"
 #     }
 #     logging.debug('starting coonection')
-#     connnection = Inf(requests.post(host, headers=header, json=ping, auth=(username,password)).json())['result']
+#     connnection = Extract(requests.post(host, headers=header, json=ping, auth=(username,password)).json())['result']
 #     try:
 #         if(connnection == 'pong'):
 #             logging.debug("connection is available")

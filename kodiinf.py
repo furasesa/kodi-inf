@@ -55,6 +55,7 @@ class Kodi (object):
             data['params'] = params
         self.id += 1
         data['id'] = self.id
+        print(data)
         self.response = requests.post(self.host, headers=self.header, json=data,auth=(self.username,self.password)).json()
         # print(self.response)
         return self.response
@@ -64,6 +65,13 @@ class Kodi (object):
         # if response 'result' : OK => kodi.getResult(sresponse)
         # {'id': 1, 'jsonrpc': '2.0', 'result': {'volume': 100}}  => kodi.getResult(sresponse)['volume']
         return Inf(sresponse)['result']
+
+kodi = Kodi("localhost:8080")
+setM = kodi.setData("Application.SetMute",{"mute":False})
+
+print("res :",setM)
+
+
 
 # if __name__ == "__main__":
     # test code
