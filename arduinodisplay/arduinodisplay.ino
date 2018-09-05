@@ -23,39 +23,61 @@ MCUFRIEND_kbv tft;
 void setup()
 {
   tft.reset();
-  Serial.begin(9600);
+  Serial.begin(115200);
   uint16_t ID = tft.readID();
   if (ID == 0xD3) ID = 0x9481;
   tft.begin(ID);
   tft.setRotation(3);
-  tft.fillScreen(BLACK);
-  text(350,20,1,&FreeSans9pt7b,"00:00 AM");
-  text(20,40,1, &FreeSerif12pt7b, "player type ");
-  text(20,70,1, &FreeSerif12pt7b, "label ");
-    
+  tft.fillScreen(BLACK);   
     
 }
 
-char com[7];
-int sa;
+//char com[7];
+//int sa;
+String command;
+String value;
 void loop()
 {
-  sa=Serial.available()-2;
-  while (Serial.available()){
-    for (int i=0; i<5; i++){
-      com[i]=Serial.read();
-      //    Serial.print(Serial.available());
-      Serial.print(com[i]);
-     delay(20);
+  if(Serial.available()>0){
+    command = Serial.readStringUntil(':');
+    Serial.print("command : ");
+    Serial.println(command);
+    value = Serial.readStringUntil('\r\n');
+    Serial.print("value : ");
+    Serial.println(value);
+    if (command=="track"){
+      playerTrack(value);
     }
+    if (command=="title"){
+      playerTitle(value);
+    }  
+    
   }
   
-  
-
- 
-  delay(20);
+//  delay(200);
 }
 
+void playerTrack(String str){
+//  positition at 20,30
+  tft.fillRect(10,10,50,50,BLACK);
+  tft.setFont(&FreeSerif12pt7b);
+  tft.setCursor(20, 30);
+  tft.setTextColor(WHITE);
+  tft.setTextSize(1.5);
+  tft.print(str);
+//  delay(200);
+}
+
+void playerTitle(String str){
+//  posisition at 50,30
+  tft.fillRect(50,10,400,50,BLACK);
+  tft.setFont(&FreeSerif12pt7b);
+  tft.setCursor(70, 30);
+  tft.setTextColor(WHITE);
+  tft.setTextSize(1.5);
+  tft.print(str);
+//  delay(200);
+}
 
 void label(String str)
 {
@@ -78,7 +100,7 @@ void text(int x, int y, int sz, const GFXfont *f, const char *msg)
 //    tft.drawFastHLine(0, y, tft.width(), WHITE);
   tft.setFont(f);
   tft.setCursor(x, y);
-  tft.setTextColor(GREEN);
+  tft.setTextColor(WHITE);
   tft.setTextSize(sz);
   tft.print(msg);
 //    delay(100);

@@ -1,6 +1,6 @@
 from kodiService import Host,Player,Kodi
 
-host = Host()
+host = Host("192.168.43.165:8080")
 player = Player()
 player.setName("player")
 # k = Kodi(args="Player.id")

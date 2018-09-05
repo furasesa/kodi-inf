@@ -16,18 +16,15 @@ header = {
         }
 arduino_connected = False
 try :
-    arduino = serial.Serial("COM3",9600,timeout=2)
+    arduino = serial.Serial("/dev/ttyACM0",115200,timeout=2)
     arduino_connected = True
     logging.debug("arduino connected")
     # waiting arduino LCD render
     time.sleep(2)
-    
-
 except :
     arduino_connected = False
     logging.error("arduino is not connected")
 
-# time.sleep(2)
 
 def producer(host,username,password):
     delay = 1
@@ -123,18 +120,33 @@ class Player (threading.Thread):
         threading.Thread.__init__(self, name=name)
         self._player_type = None
         self._player_label = None
+        self._player_title = None
+        self._player_artist = None
+        self._player_albumartist = None
+        self._player_genre = None
+        self._player_year = None
+        self._player_rating = None
+        self._player_album = None
+        self._player_track = None
+        self._player_duration = None
+        self.delay = 1 #requires for refresh rate LCD and baudrate transfer
 
     @property
     def playerType(self):
         return self._player_type
 
     @playerType.setter
-    def playerType(self, val):
-        if not self._player_type == val :
-            logging.debug("Player Type :",self.playerType)
+    def playerType(self, val) :
+        if not self._player_type == val:
+            logging.debug("Type :%s", self.playerType)
             self._player_type = val
-            # if arduino_connected :
-                # arduino.write(self.playerTyp)
+            playertype="ptype:"+self.playerType
+            print(playertype)
+            try :
+                if arduino_connected :
+                    arduino.write(playertype.encode())
+            except :
+                logging.error("Error sending PlayerType")
 
     @property
     def playerLabel(self):
@@ -143,13 +155,156 @@ class Player (threading.Thread):
     @playerLabel.setter
     def playerLabel(self, val) :
         if not self._player_label == val:
-            logging.debug("Player Label :%s", self.playerLabel)
+            logging.debug("Label :%s", self.playerLabel)
             self._player_label = val
+            label="label:"+self.playerLabel
+            print(label)
             try :
                 if arduino_connected :
-                    arduino.write(self.playerLabel.encode())
+                    arduino.write(label.encode())
             except :
-                logging.error("Error writing arduino")
+                logging.error("Error sending Label")
+
+    @property
+    def playerTitle(self):
+        return self._player_title
+
+    @playerTitle.setter
+    def playerTitle(self, val) :
+        if not self._player_title == val:
+            logging.debug("Title :%s", self.playerTitle)
+            self._player_title = val
+            title="title:"+self.playerTitle
+            print(title)
+            try :
+                if arduino_connected :
+                    arduino.write(title.encode())
+                    time.sleep(self.delay)
+            except :
+                logging.error("Error sending Title")
+
+    @property
+    def playerArtist(self):
+        return self._player_artist
+
+    @playerArtist.setter
+    def playerArtist(self, val) :
+        if not self._player_artist == val:
+            logging.debug("Artist :%s", self.playerArtist)
+            self._player_artist = val
+            artist="artist:"+self.playerArtist
+            print(artist)
+            try :
+                if arduino_connected :
+                    arduino.write(artist.encode())
+            except :
+                logging.error("Error sending Artist")
+
+    @property
+    def playerAlbumArtist(self):
+        return self._player_albumartist
+
+    @playerAlbumArtist.setter
+    def playerAlbumArtist(self, val) :
+        if not self._player_albumartist == val:
+            logging.debug("AlbumArtist :%s", self.playerAlbumArtist)
+            self._player_albumartist = val
+            albumartist="albumartist:"+self.playerAlbumArtist
+            print(albumartist)
+            try :
+                if arduino_connected :
+                    arduino.write(albumartist.encode())
+            except :
+                logging.error("Error sending AlbumArtist")
+
+    @property
+    def playerGenre(self):
+        return self._player_genre
+
+    @playerGenre.setter
+    def playerGenre(self, val) :
+        if not self._player_genre == val:
+            logging.debug("Genre :%s", self.playerGenre)
+            self._player_genre = val
+            genre="genre:"+self.playerGenre
+            print(genre)
+            try :
+                if arduino_connected :
+                    arduino.write(genre.encode())
+            except :
+                logging.error("Error sending Genre")
+
+    @property
+    def playerYear(self):
+        return self._player_year
+
+    @playerYear.setter
+    def playerYear(self, val) :
+        if not self._player_year == val:
+            logging.debug("Year :%s", self.playerYear)
+            self._player_year = val
+            year="year:"+self.playerYear
+            print(year)
+            try :
+                if arduino_connected :
+                    arduino.write(year.encode())
+            except :
+                logging.error("Error sending Year")
+
+    @property
+    def playerAlbum(self):
+        return self._player_album
+
+    @playerAlbum.setter
+    def playerAlbum(self, val) :
+        if not self._player_album == val:
+            logging.debug("Album :%s", self.playerAlbum)
+            self._player_album = val
+            album="album:"+self.playerAlbum
+            print(album)
+            try :
+                if arduino_connected :
+                    arduino.write(album.encode())
+            except :
+                logging.error("Error sending Album")
+
+
+    @property
+    def playerTrack(self):
+        return self._player_track
+
+    @playerTrack.setter
+    def playerTrack(self, val) :
+        if not self._player_track == val:
+            logging.debug("Track :%s", self.playerTrack)
+            self._player_track = val
+            track="track:"+self.playerTrack+". "
+            print(track)
+            try :
+                if arduino_connected :
+                    arduino.write(track.encode())
+                    time.sleep(self.delay)
+            except :
+                logging.error("Error sending Track")
+
+    @property
+    def playerDuration(self):
+        return self._player_duration
+
+    @playerDuration.setter
+    def playerDuration(self, val) :
+        if not self._player_duration == val:
+            logging.debug("Duration :%s", self.playerDuration)
+            self._player_duration = val
+            duration="duration:"+self.playerDuration
+            print(duration)
+            try :
+                if arduino_connected :
+                    arduino.write(duration.encode())
+            except :
+                logging.error("Error sending Duration")
+
+    
 
     def run(self) :
         trial_error = 0
@@ -172,16 +327,26 @@ class Player (threading.Thread):
                     player_id = Extract(requests.post(host, headers=header, json=player).json())['result'][0]['playerid']
                     try :
                         player["method"]="Player.GetItem"
-                        player["params"]={"playerid":player_id}
-                        player_extract = Extract(requests.post(host, headers=header, json=player).json())['result']['item']
-                        self.playerType = Extract(player_extract)['type']
-                        self.playerLabel = Extract(player_extract)['label']
-                        # com1[0] == self.playerType
-                        # com2[0] = self.playerLabel
-                        # if not com2[0]:
-                            # logging.debug("%s : %s",com1[0],com2[0])
-                        # logging.debug("%s : %s",self.playerType, self.playerLabel)
+                        player["params"]={
+                            "playerid":player_id,
+                            "properties":["title","artist","albumartist","genre","year","album","track","duration"]
+                        }
+                        result = Extract(requests.post(host, headers=header, json=player).json())['result']['item']
+                        self.playerTrack = str(result['track'])
+                        self.playerTitle = result['title']
+
+                        # self.playerType = Extract(result)['type']
+                        # self.playerLabel = result['label']
                         
+                        # self.playerArtist = result['artist'][0]
+                        # self.playerAlbumArtist = result['albumartist'][0]
+                        # self.playerGenre = result['genre'][0]
+                        # self.playerYear = str(result['year'])
+                        # self.playerAlbum = result['album']
+                        
+                        # self.playerDuration = str(result['duration'])
+                        
+                                                
                         time.sleep(delay)
                     except :
                         logging.error("error gathering player information")
