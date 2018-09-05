@@ -9,5 +9,11 @@
     "python.unitTest.pyTestEnabled": false,
     "python.unitTest.nosetestsEnabled": false,
     "python.unitTest.unittestEnabled": true,
-    "python.linting.pylintArgs": ["--reports", "12", "--disable-msg", "E1101"],
+    "python.linting.pylintArgs": [
+        "--reports",
+        "12",
+        "--disable-msg",
+        "E1101"
+    ],
+    "python.linting.pylintEnabled": false,
 }
