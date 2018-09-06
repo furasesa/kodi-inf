@@ -8,11 +8,11 @@ MCUFRIEND_kbv tft;
 
 #include <FreeDefaultFonts.h>
 
-#define BLACK   0x0000
-#define RED     0xF800
-#define GREEN   0x07E0
-#define WHITE   0xFFFF
-#define GREY    0x8410
+//#define BLACK   0x0000
+//#define RED     0xF800
+//#define GREEN   0x07E0
+//#define WHITE   0xFFFF
+//#define GREY    0x8410
 
 //Material Design
 //RED
@@ -111,13 +111,14 @@ MCUFRIEND_kbv tft;
 #define BG3   0x42ec
 #define BG4   0x2987
 
-
-
 #define RES_W 480
 #define RES_H 320
 
+#define LCD_W 480
+#define LCD_H 320
+#define MARGIN 10
 
-
+int bg_color = BG4;
 
 void setup()
 {
@@ -127,81 +128,159 @@ void setup()
   if (ID == 0xD3) ID = 0x9481;
   tft.begin(ID);
   tft.setRotation(3);
-  tft.fillScreen(BLACK);   
+  
     
 }
 
-//char com[7];
-//int sa;
-String command;
-String value;
+
+//String command;
+String playerType;
+int track_value;
+String title_value;
+String artist_value;
+String album_value;
+String year_value;
+String genre_value;
+int duration_value;
 void loop()
 {
   if(Serial.available()>0){
-    command = Serial.readStringUntil(':');
-    Serial.print("command : ");
-    Serial.println(command);
-    value = Serial.readStringUntil('\r\n');
-    Serial.print("value : ");
-    Serial.println(value);
-    if (command=="track"){
-      playerTrack(value);
-    }
-    if (command=="title"){
-      playerTitle(value);
-    }  
+    playerType = Serial.readStringUntil(';');
+    track_value=Serial.readStringUntil(';').toInt();
+    title_value=Serial.readStringUntil(';');
+    artist_value=Serial.readStringUntil(';');
+    album_value=Serial.readStringUntil(';');
+    year_value=Serial.readStringUntil(';');
+    genre_value=Serial.readStringUntil(';');
+    duration_value=Serial.readStringUntil(';').toInt();
     
+    GUIBuilder();
   }
+}
+
+
+
+void GUIBuilder(){
+  tft.fillScreen(bg_color);
+//  tft.fillRect(MARGIN,MARGIN,LCD_W-2*MARGIN,LCD_H-2*MARGIN,bg_color);
+  String header_title;
+  int spacing   = 30;
+  int left_margin = MARGIN*2;
+  int header_x  = left_margin;
+  int header_y  = MARGIN*3;
+  int artist_x  = left_margin;
+  int artist_y  = header_y+spacing*2;
+  int album_x   = left_margin;
+  int album_y   = artist_y+spacing;
+  int year_x    = left_margin;
+  int year_y    = album_y+spacing;
+  int genre_x   = left_margin;
+  int genre_y   = year_y+spacing;
+  int duration_x    = left_margin;
+  int duration_y    = genre_y+spacing;
   
-//  delay(200);
-}
-
-void playerTrack(String str){
-//  positition at 20,30
-  tft.fillRect(10,10,50,50,BLACK);
+  int rect_detail_x, rect_detail_y, rect_sz_w, rect_sz_h, rect_color;
+  
   tft.setFont(&FreeSerif12pt7b);
-  tft.setCursor(20, 30);
-  tft.setTextColor(WHITE);
+  Serial.println(track_value);
+  Serial.println(title_value);
+  
+  if (track_value > 0){
+    header_title=String(track_value)+". "+title_value;
+    
+  } else {
+    header_title=title_value;
+  }
+  Serial.println(header_title);
+  tft.setTextColor(RED1);
   tft.setTextSize(1.5);
-  tft.print(str);
-//  delay(200);
-}
+  tft.setCursor(header_x, header_y);
+  tft.print(header_title);
 
-void playerTitle(String str){
-//  posisition at 50,30
-  tft.fillRect(50,10,400,50,BLACK);
-  tft.setFont(&FreeSerif12pt7b);
-  tft.setCursor(70, 30);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(1.5);
-  tft.print(str);
-//  delay(200);
-}
-
-void label(String str)
-{
-  //erase label
-//  tft.drawRect(150,40,300,30,RED);
-  tft.fillRect(150,50,300,30,BLACK);
-  tft.setFont(&FreeSerif12pt7b);
-  tft.setCursor(150, 70);
-  tft.setTextColor(GREEN);
+  delay(50);
   tft.setTextSize(1);
-  tft.print(str);
-//    delay(100);
+
+  if (artist_value){
+    tft.setTextColor(LI1);
+    tft.setCursor(artist_x, artist_y);
+    tft.print("Artist: "+artist_value);
+  }
+
+  if (album_value){
+    tft.setTextColor(AM1);
+    tft.setCursor(album_x, album_y);
+    tft.print("Album: "+album_value);
+  }
+
+  if (year_value){
+    tft.setTextColor(IN1);
+    tft.setCursor(year_x, year_y);
+    tft.print("Year: "+year_value);
+  }
+  if (genre_value){
+    tft.setTextColor(GR1);
+    tft.setCursor(genre_x, genre_y);
+    tft.print("Genre: "+genre_value);
+  }
+  if (duration_value>0){
+    int minutes = duration_value/60;
+    int seconds = duration_value%60;
+    String men,det;
+    
+    if (minutes > 0){
+      men = String(minutes)+" Menit ";
+    }
+    if (seconds >0) {
+      det = String(seconds)+" Detik";
+    }
+    tft.setTextColor(PUR1);
+    tft.setCursor(duration_x, duration_y);
+    tft.print("Duration: "+men+det);
+  }
+    
+  
+  
+//  tft.setFont(&FreeSerif12pt7b);
+//  tft.setCursor(title_start, header_top);
+//  tft.setTextColor(title_color);
+//  tft.setTextSize(header_text_sz);
+//  tft.print(str);
+
+
 }
 
 
-void text(int x, int y, int sz, const GFXfont *f, const char *msg)
-{
-//    int16_t x1, y1;
-//    uint16_t wid, ht;
-//    tft.drawFastHLine(0, y, tft.width(), WHITE);
-  tft.setFont(f);
-  tft.setCursor(x, y);
-  tft.setTextColor(WHITE);
-  tft.setTextSize(sz);
-  tft.print(msg);
-//    delay(100);
-}
+//
+//void showSongDetail(){
+//  int posx,posy;
+//  tft.drawRect(detail_window_posx,detail_window_posy,detail_window_w,detail_window_h,detail_window_color);
+//}
+//void playerTrack(String str){
+//  tft.setFont(&FreeSerif12pt7b);
+//  tft.setCursor(track_start, header_top);
+//  tft.setTextColor(track_color);
+//  tft.setTextSize(header_text_sz);
+//  tft.print(str);
+//}
+//
+//void playerTitle(String str){
+//  tft.fillRect(MARGIN,MARGIN,LCD_W-2*MARGIN,LCD_H-2*MARGIN,bg_color);
+//  tft.setFont(&FreeSerif12pt7b);
+//  tft.setCursor(title_start, header_top);
+//  tft.setTextColor(title_color);
+//  tft.setTextSize(header_text_sz);
+//  tft.print(str);
+//  if(playerType=="song"){
+////    Serial.println("playerType=song");
+//    showSongDetail();
+//  }
+//}
+//
+//void playerArtist(String str){
+//  tft.setFont(&FreeSerif12pt7b);
+//  tft.setCursor(title_start, header_top);
+//  tft.setTextColor(title_color);
+//  tft.setTextSize(header_text_sz);
+//  tft.print(str);
+//}
 

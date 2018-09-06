@@ -6,7 +6,7 @@ import time
 import sys
 import serial
 
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s', )
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s', )
 
 #global
 condition = threading.Condition()
@@ -16,7 +16,7 @@ header = {
         }
 arduino_connected = False
 try :
-    arduino = serial.Serial("COM3",115200,timeout=2)
+    arduino = serial.Serial("/dev/ttyACM0",115200,timeout=2)
     arduino_connected = True
     logging.debug("arduino connected")
     # waiting arduino LCD render
@@ -129,7 +129,6 @@ class Player (threading.Thread):
         self._player_album = None
         self._player_track = None
         self._player_duration = None
-        self.delay = 1 #requires for refresh rate LCD and baudrate transfer
 
     @property
     def playerType(self):
@@ -138,15 +137,8 @@ class Player (threading.Thread):
     @playerType.setter
     def playerType(self, val) :
         if not self._player_type == val:
-            logging.debug("Type :%s", self.playerType)
             self._player_type = val
-            playertype="ptype:"+self.playerType
-            print(playertype)
-            try :
-                if arduino_connected :
-                    arduino.write(playertype.encode())
-            except :
-                logging.error("Error sending PlayerType")
+            logging.debug("Type :%s", self.playerType)
 
     @property
     def playerLabel(self):
@@ -155,15 +147,10 @@ class Player (threading.Thread):
     @playerLabel.setter
     def playerLabel(self, val) :
         if not self._player_label == val:
-            logging.debug("Label :%s", self.playerLabel)
             self._player_label = val
-            label="label:"+self.playerLabel
+            logging.debug("Label :%s", self.playerLabel)
+            label="label:"+self.playerLabel+"\n"
             print(label)
-            try :
-                if arduino_connected :
-                    arduino.write(label.encode())
-            except :
-                logging.error("Error sending Label")
 
     @property
     def playerTitle(self):
@@ -172,14 +159,14 @@ class Player (threading.Thread):
     @playerTitle.setter
     def playerTitle(self, val) :
         if not self._player_title == val:
-            logging.debug("Title :%s", self.playerTitle)
             self._player_title = val
-            title="title:"+self.playerTitle
-            print(title)
+            logging.debug("Title :%s", self.playerTitle)
+            message=self.playerType+";"+self.playerTrack+";"+self.playerTitle+";"+self.playerArtist+";"+self.playerAlbum+";"+self.playerYear+";"+self.playerGenre+";"+self.playerDuration
+            print("message:"+message)
             try :
                 if arduino_connected :
-                    arduino.write(title.encode())
-                    time.sleep(self.delay)
+                    arduino.write(message.encode())
+                    # time.sleep(self.delay)
             except :
                 logging.error("Error sending Title")
 
@@ -190,15 +177,8 @@ class Player (threading.Thread):
     @playerArtist.setter
     def playerArtist(self, val) :
         if not self._player_artist == val:
-            logging.debug("Artist :%s", self.playerArtist)
             self._player_artist = val
-            artist="artist:"+self.playerArtist
-            print(artist)
-            try :
-                if arduino_connected :
-                    arduino.write(artist.encode())
-            except :
-                logging.error("Error sending Artist")
+            logging.debug("Artist :%s", self.playerArtist)
 
     @property
     def playerAlbumArtist(self):
@@ -207,15 +187,8 @@ class Player (threading.Thread):
     @playerAlbumArtist.setter
     def playerAlbumArtist(self, val) :
         if not self._player_albumartist == val:
-            logging.debug("AlbumArtist :%s", self.playerAlbumArtist)
             self._player_albumartist = val
-            albumartist="albumartist:"+self.playerAlbumArtist
-            print(albumartist)
-            try :
-                if arduino_connected :
-                    arduino.write(albumartist.encode())
-            except :
-                logging.error("Error sending AlbumArtist")
+            logging.debug("AlbumArtist :%s", self.playerAlbumArtist)
 
     @property
     def playerGenre(self):
@@ -224,15 +197,8 @@ class Player (threading.Thread):
     @playerGenre.setter
     def playerGenre(self, val) :
         if not self._player_genre == val:
-            logging.debug("Genre :%s", self.playerGenre)
             self._player_genre = val
-            genre="genre:"+self.playerGenre
-            print(genre)
-            try :
-                if arduino_connected :
-                    arduino.write(genre.encode())
-            except :
-                logging.error("Error sending Genre")
+            logging.debug("Genre :%s", self.playerGenre)
 
     @property
     def playerYear(self):
@@ -241,15 +207,8 @@ class Player (threading.Thread):
     @playerYear.setter
     def playerYear(self, val) :
         if not self._player_year == val:
-            logging.debug("Year :%s", self.playerYear)
             self._player_year = val
-            year="year:"+self.playerYear
-            print(year)
-            try :
-                if arduino_connected :
-                    arduino.write(year.encode())
-            except :
-                logging.error("Error sending Year")
+            logging.debug("Year :%s", self.playerYear)
 
     @property
     def playerAlbum(self):
@@ -258,16 +217,8 @@ class Player (threading.Thread):
     @playerAlbum.setter
     def playerAlbum(self, val) :
         if not self._player_album == val:
-            logging.debug("Album :%s", self.playerAlbum)
             self._player_album = val
-            album="album:"+self.playerAlbum
-            print(album)
-            try :
-                if arduino_connected :
-                    arduino.write(album.encode())
-            except :
-                logging.error("Error sending Album")
-
+            logging.debug("Album :%s", self.playerAlbum)
 
     @property
     def playerTrack(self):
@@ -276,16 +227,8 @@ class Player (threading.Thread):
     @playerTrack.setter
     def playerTrack(self, val) :
         if not self._player_track == val:
-            logging.debug("Track :%s", self.playerTrack)
             self._player_track = val
-            track="track:"+self.playerTrack+". "
-            print(track)
-            try :
-                if arduino_connected :
-                    arduino.write(track.encode())
-                    time.sleep(self.delay)
-            except :
-                logging.error("Error sending Track")
+            logging.debug("Track :%s", self.playerTrack)
 
     @property
     def playerDuration(self):
@@ -294,17 +237,8 @@ class Player (threading.Thread):
     @playerDuration.setter
     def playerDuration(self, val) :
         if not self._player_duration == val:
-            logging.debug("Duration :%s", self.playerDuration)
             self._player_duration = val
-            duration="duration:"+self.playerDuration
-            print(duration)
-            try :
-                if arduino_connected :
-                    arduino.write(duration.encode())
-            except :
-                logging.error("Error sending Duration")
-
-    
+            logging.debug("Duration :%s", self.playerDuration)
 
     def run(self) :
         trial_error = 0
@@ -319,8 +253,6 @@ class Player (threading.Thread):
                     "id" : "playerinf",
                     "method" : "Player.GetActivePlayers"
                 }
-                # logging.debug("sending : %s to %s", player, host)
-                # player_id[0] = "dummy"
                 try :
                     trial_success += 1
                     trial_error = 0
@@ -332,22 +264,19 @@ class Player (threading.Thread):
                             "properties":["title","artist","albumartist","genre","year","album","track","duration"]
                         }
                         result = Extract(requests.post(host, headers=header, json=player).json())['result']['item']
-                        self.playerTrack = str(result['track'])
-                        self.playerTitle = result['title']
+                        self.playerType = Extract(result)['type']
+                        if self.playerType=="song":
+                            self.playerTrack = str(result['track'])
+                            self.playerArtist = result['artist'][0]
+                            self.playerAlbum = result['album']
+                            self.playerDuration = str(result['duration'])
+                            self.playerGenre = result['genre'][0]
+                            self.playerYear = str(result['year'])
+                            self.playerTitle = result['title']
 
-                        # self.playerType = Extract(result)['type']
                         # self.playerLabel = result['label']
-                        
-                        # self.playerArtist = result['artist'][0]
                         # self.playerAlbumArtist = result['albumartist'][0]
-                        # self.playerGenre = result['genre'][0]
-                        # self.playerYear = str(result['year'])
-                        # self.playerAlbum = result['album']
-                        
-                        # self.playerDuration = str(result['duration'])
-                        
-                                                
-                        time.sleep(delay)
+                        # time.sleep(delay)
                     except :
                         logging.error("error gathering player information")
                 except :
@@ -355,5 +284,8 @@ class Player (threading.Thread):
                     trial_success = 0
                     if trial_error >= 5 :
                         break
+                        if arduino_connected :
+                            if self.playerType :
+                                self.playerType = None
                     logging.debug("no active player")
                 
