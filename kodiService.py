@@ -16,7 +16,7 @@ header = {
         }
 arduino_connected = False
 try :
-    arduino = serial.Serial("/dev/ttyACM0",115200,timeout=2)
+    arduino = serial.Serial("COM3",115200,timeout=2)
     arduino_connected = True
     logging.debug("arduino connected")
     # waiting arduino LCD render

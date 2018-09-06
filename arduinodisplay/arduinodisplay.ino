@@ -14,6 +14,105 @@ MCUFRIEND_kbv tft;
 #define WHITE   0xFFFF
 #define GREY    0x8410
 
+//Material Design
+//RED
+#define RED1  0xfc4f //A100
+#define RED2  0xfa8a //A200
+#define RED3  0xf8c8 //A400
+#define RED4  0xd000 //A700
+//Pink
+#define PINK1  0xfc15
+#define PINK2  0xfa10
+#define PINK3  0xf00a
+#define PINK4  0xc08c
+//PURPLE
+#define PUR1  0xe41f
+#define PUR2  0xda1e
+#define PUR3  0xd01e
+#define PUR4  0xa81f
+//DEEP PURPLE
+#define DP1   0xb43f
+#define DP2   0x7a7f
+#define DP3   0x611f
+#define DP4   0x601c
+//INDIGO
+#define IN1   0x8cff
+#define IN2   0x537f
+#define IN3   0x3ade
+#define IN4   0x327e
+//BLUE
+#define BL1   0x859f
+#define BL2   0x445f
+#define BL3   0x2bdf
+#define BL4   0x2b1f
+//LIGHT BLUE
+#define LB1   0x86bf
+#define LB2   0x461f
+#define LB3   0x059f
+#define LB4   0x049c
+//CYAN
+#define CY1   0x87ff
+#define CY2   0x1fff
+#define CY3   0x071f
+#define CY4   0x05ba
+//TEAL
+#define TE1   0xa7fc
+#define TE2   0x67fb
+#define TE3   0x1f3a
+#define TE4   0x05f4
+//GREEN
+#define GR1   0xb7b9
+#define GR2   0x6f95
+#define GR3   0x072e
+#define GR4   0x062a
+//LIGHT GREEN
+#define LG1   0xcfb2
+#define LG2   0xb7eb
+#define LG3   0x77e1
+#define LG4   0x66c3
+//LIME
+#define LI1   0xf7f0
+#define LI2   0xefe8
+#define LI3   0xc7e0
+#define LI4   0xaf40
+//YELLOW
+#define YE1   0xfff1
+#define YE2   0xffe0
+#define YE3   0xff40
+#define TE4   0xfea0
+//AMBER
+#define AM1   0xff2f
+#define AM2   0xfea8
+#define AM3   0xfe20
+#define AM4   0xfd40
+//ORANGE
+#define OR1   0xfe90
+#define OR2   0xfd48
+#define OR3   0xfc80
+#define OR4   0xfb60
+//DEPP ORANGE
+#define DO1   0xfcf0
+#define DO2   0xfb68
+#define DO3   0xf9e0
+#define DO4   0xd960
+//BROWN
+#define BR1   0xbd54
+#define BR2   0x8b6c
+#define BR3   0x6a68
+#define BR4   0x49a4
+//GREY
+#define GR1   0xef7d
+#define GR2   0xbdf7
+#define GR3   0x630c
+#define GR4   0x2104
+//BLUE GREY
+#define BG1   0xb5f8
+#define BG2   0x63f1
+#define BG3   0x42ec
+#define BG4   0x2987
+
+
+
 #define RES_W 480
 #define RES_H 320
 
