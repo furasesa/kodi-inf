@@ -1,4 +1,9 @@
 import requests
+import codecs
+import sys
+# use chcp 65001 instead of 437
+
+print(sys.getdefaultencoding())
 
 class Extract(dict):
     class NADict(object):
@@ -13,7 +18,7 @@ ping = {
         "method" : "JSONRPC.Ping",
         "id" : "ping"
     }
-host = "http://192.168.43.165:8080/jsonrpc"
+host = "http://localhost:8080/jsonrpc"
 known_host = Extract(requests.post(host, json=ping).json())['result']
 print(known_host)
 
@@ -36,10 +41,11 @@ playeritem={
     "id" : "gp",
     "params":{
         "playerid":0,
-        "properties":["title","artist","albumartist","genre","year","album","track","duration"]
+        "properties":["title","artist","albumartist","genre","year","album","track","duration","runtime"]
         }
 }
 result = Extract(requests.post(host, json=playeritem).json())['result']['item']
+# print(result)
 ptype = result['type']
 title = result['title']
 artist = result['artist'][0]
@@ -49,6 +55,7 @@ year = result['year']
 album = result['album']
 track = result['track']
 duration = result['duration']
-print ("type:",ptype,"title:",title," artist:",artist,"albumartist:",albumartist,"genre:",genre,"year:",year,
-"album:",album,"track:",track,"duration:",duration)
+print("type:",ptype,"title:",title,"artist:",artist,"albumartist:",albumartist,
+"genre:",genre,"year:",year,"album:",album,"track:",track,"duration:",duration)
+# print("type:",ptype,"title:",title,"genre:",genre,"year:",year,"album:",album,"track:",track,"duration:",duration)
 

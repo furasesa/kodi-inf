@@ -6,7 +6,7 @@ import time
 import sys
 import serial
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s', )
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s', )
 
 #global
 condition = threading.Condition()
@@ -16,7 +16,7 @@ header = {
         }
 arduino_connected = False
 try :
-    arduino = serial.Serial("/dev/ttyACM0",115200,timeout=2)
+    arduino = serial.Serial("COM3",115200,timeout=2)
     arduino_connected = True
     logging.debug("arduino connected")
     # waiting arduino LCD render
@@ -129,6 +129,7 @@ class Player (threading.Thread):
         self._player_album = None
         self._player_track = None
         self._player_duration = None
+        self._player_percentage = None
 
     @property
     def playerType(self):
@@ -240,6 +241,25 @@ class Player (threading.Thread):
             self._player_duration = val
             logging.debug("Duration :%s", self.playerDuration)
 
+    @property
+    def playerPercentage(self):
+        return self._player_percentage
+
+    @playerPercentage.setter
+    def playerPercentage(self, val) :
+        if not self._player_percentage == val:
+            self._player_percentage = val
+            logging.debug("Percentage :%s", self.playerPercentage)
+            message="ppercentage:"+self.playerPercentage
+            print(message)
+            try :
+                if arduino_connected :
+                    arduino.write(message.encode())
+                    # time.sleep(self.delay)
+            except :
+                logging.error("Error Transmit Player Percentage")
+
+
     def run(self) :
         trial_error = 0
         trial_success = 0
@@ -273,6 +293,23 @@ class Player (threading.Thread):
                             self.playerGenre = result['genre'][0]
                             self.playerYear = str(result['year'])
                             self.playerTitle = result['title']
+
+                        player_percentage_json = {
+                            "jsonrpc" : "2.0",
+                            "method" : "Player.GetProperties",
+                            "id" : "player_percentage",
+                            "params":{
+                                "playerid":player_id,
+                                "properties":["percentage"]
+                            }
+                        }
+                        try:
+                            pp_res = int(Extract(requests.post(host, headers=header, json=player_percentage_json).json())['result']['percentage'])
+                            self.playerPercentage = str(pp_res)
+                        except :
+                            logging.error("player percentage get error")
+
+                        # if self.playerType=="movie":
 
                         # self.playerLabel = result['label']
                         # self.playerAlbumArtist = result['albumartist'][0]

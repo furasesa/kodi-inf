@@ -132,7 +132,7 @@ void setup()
     
 }
 
-
+int test=0;
 //String command;
 String playerType;
 int track_value;
@@ -142,6 +142,7 @@ String album_value;
 String year_value;
 String genre_value;
 int duration_value;
+int percentage_value;
 void loop()
 {
   if(Serial.available()>0){
@@ -154,7 +155,15 @@ void loop()
     genre_value=Serial.readStringUntil(';');
     duration_value=Serial.readStringUntil(';').toInt();
     
+    if (Serial.readStringUntil(':')=="ppercentage"){
+      percentage_value=Serial.readStringUntil('\n').toInt(); 
+    }
+    
     GUIBuilder();
+  
+//  if (test<1){
+//    GUIBuilder();
+//    test +=1;
   }
 }
 
@@ -178,20 +187,21 @@ void GUIBuilder(){
   int genre_y   = year_y+spacing;
   int duration_x    = left_margin;
   int duration_y    = genre_y+spacing;
-  
+  int progressbar_w = 400;
+  int progressbar_h = 30;
+  int progressbar_x = (LCD_W-progressbar_w)/2;
+  int progressbar_y = LCD_H-MARGIN*2-progressbar_h;
+ 
   int rect_detail_x, rect_detail_y, rect_sz_w, rect_sz_h, rect_color;
   
   tft.setFont(&FreeSerif12pt7b);
-  Serial.println(track_value);
-  Serial.println(title_value);
-  
   if (track_value > 0){
     header_title=String(track_value)+". "+title_value;
     
   } else {
     header_title=title_value;
   }
-  Serial.println(header_title);
+  
   tft.setTextColor(RED1);
   tft.setTextSize(1.5);
   tft.setCursor(header_x, header_y);
@@ -237,7 +247,18 @@ void GUIBuilder(){
     tft.setCursor(duration_x, duration_y);
     tft.print("Duration: "+men+det);
   }
-    
+  
+  tft.drawRect(progressbar_x,progressbar_y,progressbar_w,progressbar_h,BR1);
+  Serial.print("Progressbar Width :");
+  Serial.println(progressbar_w);
+  
+  while (percentage_value) {
+    for (int i=percentage_value; i<=100; i++){
+      int bar = progressbar_w/100*i;
+      tft.fillRect(progressbar_x,progressbar_y,bar,progressbar_h,TE1);
+    }
+  }
+  
   
   
 //  tft.setFont(&FreeSerif12pt7b);
