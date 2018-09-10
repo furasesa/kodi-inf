@@ -20,7 +20,7 @@ try :
     arduino_connected = True
     logging.debug("arduino connected")
     # waiting arduino LCD render
-    time.sleep(2)
+    # time.sleep(1)
 except :
     arduino_connected = False
     logging.error("arduino is not connected")
@@ -130,6 +130,7 @@ class Player (threading.Thread):
         self._player_track = None
         self._player_duration = None
         self._player_percentage = None
+        self._uploader_msg = None
 
     @property
     def playerType(self):
@@ -163,14 +164,9 @@ class Player (threading.Thread):
             self._player_title = val
             logging.debug("Title :%s", self.playerTitle)
             message=self.playerType+";"+self.playerTrack+";"+self.playerTitle+";"+self.playerArtist+";"+self.playerAlbum+";"+self.playerYear+";"+self.playerGenre+";"+self.playerDuration
-            print("message:"+message)
-            try :
-                if arduino_connected :
-                    arduino.write(message.encode())
-                    # time.sleep(self.delay)
-            except :
-                logging.error("Error sending Title")
-
+            # print("message:"+message)
+            self.uploaderMessage = message
+            
     @property
     def playerArtist(self):
         return self._player_artist
@@ -247,17 +243,36 @@ class Player (threading.Thread):
 
     @playerPercentage.setter
     def playerPercentage(self, val) :
-        if not self._player_percentage == val:
-            self._player_percentage = val
-            logging.debug("Percentage :%s", self.playerPercentage)
-            message="ppercentage:"+self.playerPercentage
-            print(message)
-            try :
-                if arduino_connected :
-                    arduino.write(message.encode())
-                    # time.sleep(self.delay)
-            except :
-                logging.error("Error Transmit Player Percentage")
+        if not self.playerPercentage == val :
+            # print(val)
+            self.uploaderMessage = val
+        # if not self._player_percentage == val:
+        #     self._player_percentage = val
+        #     logging.debug("Percentage :%s", self.playerPercentage)
+        #     message="ppercentage:"+self.playerPercentage
+        #     print(message)
+        #     try :
+        #         if arduino_connected :
+        #             arduino.write(message.encode())
+        #             # time.sleep(self.delay)
+        #     except :
+        #         logging.error("Error Transmit Player Percentage")
+
+        @property
+        def uploaderMessage(self):
+            return self._uploader_msg
+
+        @uploaderMessage.setter
+        def uploaderMessage(self, val) :
+            print(val)
+            if arduino_connected :
+                try :
+                    arduino.write(val.encode())
+                    time.sleep(1)
+                except :
+                    logging.error("Error uploading message")
+
+
 
 
     def run(self) :
@@ -294,26 +309,23 @@ class Player (threading.Thread):
                             self.playerYear = str(result['year'])
                             self.playerTitle = result['title']
 
-                        player_percentage_json = {
-                            "jsonrpc" : "2.0",
-                            "method" : "Player.GetProperties",
-                            "id" : "player_percentage",
-                            "params":{
-                                "playerid":player_id,
-                                "properties":["percentage"]
+                            player_percentage_json = {
+                                "jsonrpc" : "2.0",
+                                "method" : "Player.GetProperties",
+                                "id" : "player_percentage",
+                                "params":{
+                                    "playerid":player_id,
+                                    "properties":["percentage"]
+                                }
                             }
-                        }
-                        try:
-                            pp_res = int(Extract(requests.post(host, headers=header, json=player_percentage_json).json())['result']['percentage'])
-                            self.playerPercentage = str(pp_res)
-                        except :
-                            logging.error("player percentage get error")
+                            try:
+                                pp_res = int(Extract(requests.post(host, headers=header, json=player_percentage_json).json())['result']['percentage'])
+                                self.playerPercentage = pp_res
+                                # print (str(pp_res))
+                            except :
+                                logging.error("player percentage get error")
 
-                        # if self.playerType=="movie":
-
-                        # self.playerLabel = result['label']
-                        # self.playerAlbumArtist = result['albumartist'][0]
-                        # time.sleep(delay)
+                    
                     except :
                         logging.error("error gathering player information")
                 except :
