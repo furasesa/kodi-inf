@@ -20,7 +20,9 @@ try :
     arduino_connected = True
     logging.debug("arduino connected")
     # waiting arduino LCD render
-    # time.sleep(1)
+    time.sleep(2)
+    
+
 except :
     arduino_connected = False
     logging.error("arduino is not connected")
@@ -48,6 +50,7 @@ def producer(host,username,password):
                     if trial_success >= 5:
                         continue
                     # connection.IsConnected = True
+
                     logging.debug("Connection status %s",connection.IsConnected)
 
             except:
@@ -59,6 +62,20 @@ def producer(host,username,password):
                     # connection.IsConnected = False
                     logging.error("error connection to %s, triying (%s)",host,trial_error)
         time.sleep(delay)
+        try :
+            state = arduino.read_until("\r\n").decode("utf-8")
+            print(state)
+            if state == "st0":
+                print ("state is 0")
+            if state == "st1":
+                print ("state is 1")
+            if arduino_connected :
+                arduino.write(val.encode())
+                time.sleep(.5)
+                # arduino.flush()
+                    
+        except:
+            logging.error("error arduino state")    
 
 
 def consumer(id, args, kwarg, filterResult):
@@ -131,6 +148,7 @@ class Player (threading.Thread):
         self._player_duration = None
         self._player_percentage = None
         self._uploader_msg = None
+        self._serial_state = None
 
     @property
     def playerType(self):
@@ -239,40 +257,31 @@ class Player (threading.Thread):
 
     @property
     def playerPercentage(self):
-        return self._player_percentage
-
+        return self._player_percentage          
     @playerPercentage.setter
     def playerPercentage(self, val) :
-        if not self.playerPercentage == val :
-            # print(val)
-            self.uploaderMessage = val
-        # if not self._player_percentage == val:
-        #     self._player_percentage = val
-        #     logging.debug("Percentage :%s", self.playerPercentage)
-        #     message="ppercentage:"+self.playerPercentage
-        #     print(message)
-        #     try :
-        #         if arduino_connected :
-        #             arduino.write(message.encode())
-        #             # time.sleep(self.delay)
-        #     except :
-        #         logging.error("Error Transmit Player Percentage")
-
-        @property
-        def uploaderMessage(self):
-            return self._uploader_msg
-
-        @uploaderMessage.setter
-        def uploaderMessage(self, val) :
-            print(val)
-            if arduino_connected :
-                try :
-                    arduino.write(val.encode())
-                    time.sleep(1)
-                except :
-                    logging.error("Error uploading message")
+        if not self._player_percentage == val :
+            message = "ppercentage:"+str(val)
+           
+    @property
+    def serialState(self):
+        return self._serial_state
+    @serialState.setter
+    def serialState(self,val):
+        self._serial_state = val
 
 
+    
+
+    
+    
+    @property
+    def uploaderMessage(self):
+        return self._uploader_msg
+
+    @uploaderMessage.setter
+    def uploaderMessage(self, val) :
+        print(val)
 
 
     def run(self) :
