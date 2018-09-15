@@ -9,7 +9,7 @@ import serial
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s (%(threadName)-2s) %(message)s', )
 
 #global
-condition = threading.Condition()
+
 header = {
             'Content-Type': 'application/json',
             'User-Agent': 'python-kodi'
@@ -33,6 +33,7 @@ def producer(host,username,password):
     trial_success = 0
     trial_error = 0 
     logging.debug("running producer")
+    
     while True:
         with condition:
             # logging.debug("condition ok")
@@ -51,7 +52,7 @@ def producer(host,username,password):
                         continue
                     # connection.IsConnected = True
 
-                    logging.debug("Connection status %s",connection.IsConnected)
+                    logging.debug("Connected to Host %s",host)
 
             except:
                 trial_success = 0
@@ -61,21 +62,22 @@ def producer(host,username,password):
                     trial_error = 0
                     # connection.IsConnected = False
                     logging.error("error connection to %s, triying (%s)",host,trial_error)
-        time.sleep(delay)
-        try :
-            state = arduino.read_until("\r\n").decode("utf-8")
-            print(state)
-            if state == "st0":
-                print ("state is 0")
-            if state == "st1":
-                print ("state is 1")
-            if arduino_connected :
-                arduino.write(val.encode())
-                time.sleep(.5)
-                # arduino.flush()
-                    
-        except:
-            logging.error("error arduino state")    
+
+            time.sleep(delay)
+            try :
+                state = arduino.read_until("\r\n").decode("utf-8")
+                print(state)
+                if state == "st0":
+                    print ("state is 0")
+                if state == "st1":
+                    print ("state is 1")
+                if arduino_connected :
+                    arduino.write(val.encode())
+                    time.sleep(.5)
+                    # arduino.flush()
+                        
+            except:
+                logging.error("error arduino state")    
 
 
 def consumer(id, args, kwarg, filterResult):
@@ -109,14 +111,30 @@ class Extract(dict):
 class Host(threading.Thread):
     def __init__(self, url="localhost:8080", name="Server",  user="kodi", passwd="kodi"):
         threading.Thread.__init__(self, name="Server")
-        global host, username, password
+        global host, username, password, condition
         host = "http://"+url+"/jsonrpc"
         username = user
         password = passwd
+        condition = threading.Condition()
+
 
     def run (self):
         logging.debug("running host")
-        producer(host,username,password)
+        ping = {
+                "jsonrpc" : "2.0",
+                "method" : "JSONRPC.Ping",
+                "id" : "ping"
+            }
+        with condition :
+            known_host = requests.post(host, json=ping).json()['result']
+            while known_host == "pong":
+                condition.notifyAll()
+                # print ("connected to host")
+            else :
+                logging.error("connection error")
+                pass
+                # print("connection error")
+        # producer(host,username,password)
 
 class Kodi(threading.Thread):
     def __init__(self, name=None, args=(), kwargs=None, id=None, getresult=None):
