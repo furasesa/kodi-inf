@@ -2,7 +2,10 @@ import threading
 import queue
 import requests
 import logging
+import time
 from microservice import Arduino
+import musicProperty as m
+import videoProperty as v
 
 # q=queue.Queue()
 
@@ -15,7 +18,7 @@ class Kodi:
         self._host = "http://"+url+"/jsonrpc"
         self._isconnected = False
         self._playerid = None
-        
+        self._delay = 1
 
     @property
     def Host(self):
@@ -45,13 +48,18 @@ class Kodi:
         return self._playerid
     @playerId.setter
     def playerId(self,val):
-        if val == 0:
-            self.musicPlayer()
-        elif val == 1:
-            self.videoPlayer()
-        else :
-            logging.error("Other Player ID")
-        
+        self._playerid = val
+        while val == 0 or val == 1:
+            if val == 0:
+                self.musicPlayer()
+                time.sleep(self._delay)
+            elif val == 1:
+                self.videoPlayer()
+                time.sleep(self._delay)
+            else :
+                logging.error("Other Player ID")
+
+    
     def musicPlayer(self):
         mplayer = self.jstemp
         mplayer["method"] = "Player.GetItem"
@@ -61,19 +69,21 @@ class Kodi:
             "properties":["title","artist","genre","year","album","track","duration"]
         }
         result = requests.post(self.Host, json=mplayer).json()['result']['item']
-        # playerType = result['type']
-        track = str(result['track'])
-        title = result['title']
-        artist = result['artist'][0]
-        album = result['album']
-        duration = str(result['duration'])
-        genre = result['genre'][0]
-        year = str(result['year'])
-        message = str(0)+":"+track+":"+title
-        # print (message)
+        # logging.debug(result)
+        m.track = str(result['track'])
+        m.artist = result['artist'][0]
+        m.album = result['album']
+        m.genre = result['genre'][0]
+        m.year = str(result['year'])
+        m.duration = str(result['duration'])
+        if not m.title == result['title'] :
+            m.title = result['title']
+            message = str(0)+":"+m.track+":"+m.title+":"+m.artist+":"+m.album+":"+m.year+":"+m.duration
+            self.uploader(message)
+
+    def uploader(self, message):
+        logging.debug("uploader : %s",message)
         self.arduino.send(message)
-        
-        # logging.debug("artis %s\talbum %s\ttitle %s",playerArtist,playerAlbum,playerTitle)
 
     def videoPlayer(self):
         vplayer = self.jstemp
@@ -84,23 +94,26 @@ class Kodi:
             "properties":["showtitle", "title","season","episode","votes"]
         }
         result = requests.post(self.Host, json=vplayer).json()['result']['item']
-        showtitle = result["showtitle"]
-        ptype = result["type"]
-        season = str(result["season"])
-        episode = str(result["episode"])
-        title = result["title"]
-        votes = str(result["votes"])
-        logging.debug("\nshowtitle\t:%s\nseason\t\t:%s\nepisode\t\t:%s\ntitle\t\t:%s\nvotes\t\t:%s",showtitle,season,episode,title,votes)
+        
+        v.showTitle = result["showtitle"]
+        v.videoType = result["type"]
+        v.season = str(result["season"])
+        v.episode = str(result["episode"])
+        v.votes = str(result["votes"])
+        if not v.title == result['title'] :
+            v.title = result["title"]
+            # message = str(1)+
+
+        # logging.debug("\nshowtitle\t:%s\nseason\t\t:%s\nepisode\t\t:%s\ntitle\t\t:%s\nvotes\t\t:%s",showtitle,season,episode,title,votes)
 
     def run(self):
-        if self.isConnected:
-            try:
-                jsplayerid = self.jstemp
-                jsplayerid["method"] = "Player.GetActivePlayers"
-                jsplayerid["id"] = "playerid"
-                self.playerId = requests.post(self.Host, json=jsplayerid).json()['result'][0]['playerid']
-            except:
-                logging.error("error getting player id")
+        while self.isConnected:
+            jsplayerid = self.jstemp
+            jsplayerid["method"] = "Player.GetActivePlayers"
+            jsplayerid["id"] = "playerid"
+            self.playerId = requests.post(self.Host, json=jsplayerid).json()['result'][0]['playerid']
+            time.sleep(self._delay)
+
 
 
         
