@@ -17,6 +17,7 @@ class Arduino:
 
     def send(self,msg):
         self.s.flush()
+        time.sleep(.5)
         # logging.debug("sending %s",msg)
         self.s.write(msg.encode())
         logging.debug("please wait...(%ss)",self._delay)

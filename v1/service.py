@@ -38,6 +38,7 @@ class Kodi:
             requests.post(self.Host, json=ping).json()['result']
             return True
         except:
+            logging.error("Host is not found or kodi is not started")
             return False
     @isConnected.setter
     def isConnected(self,val):
@@ -94,14 +95,14 @@ class Kodi:
             "properties":["showtitle", "title","season","episode","votes"]
         }
         result = requests.post(self.Host, json=vplayer).json()['result']['item']
-        
-        v.showTitle = result["showtitle"]
         v.videoType = result["type"]
+        v.showTitle = result["showtitle"]
         v.season = str(result["season"])
         v.episode = str(result["episode"])
         v.votes = str(result["votes"])
         if not v.title == result['title'] :
             v.title = result["title"]
+            message = str(1)+":"+v.videoType+":"+v.showTitle+":"+v.season+":"+v.episode+":"+v.votes
             # message = str(1)+
 
         # logging.debug("\nshowtitle\t:%s\nseason\t\t:%s\nepisode\t\t:%s\ntitle\t\t:%s\nvotes\t\t:%s",showtitle,season,episode,title,votes)
